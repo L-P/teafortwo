@@ -1,4 +1,4 @@
-package main
+package game
 
 import (
 	"fmt"
@@ -16,29 +16,32 @@ const (
 	DirUp    Direction = iota
 )
 
+type TileMap [BoardSide * BoardSide]int
+type freezeMap [BoardSide * BoardSide]bool
+
 type Board struct {
-	raw    [BoardSide * BoardSide]int
-	freeze [BoardSide * BoardSide]bool
+	tiles     TileMap
+	freezeMap freezeMap
 }
 
 func (b Board) Get(x, y int) int {
-	return b.raw[y*BoardSide+x]
+	return b.tiles[positionToI(x, y)]
 }
 
 func (b *Board) Set(x, y, v int) {
-	b.raw[y*BoardSide+x] = v
+	b.tiles[positionToI(x, y)] = v
 }
 
-func (b *Board) Freeze(x, y int) {
-	b.freeze[y*BoardSide+x] = true
+func (b *Board) freeze(x, y int) {
+	b.freezeMap[positionToI(x, y)] = true
 }
 
 func (b *Board) IsFrozen(x, y int) bool {
-	return b.freeze[y*BoardSide+x]
+	return b.freezeMap[positionToI(x, y)]
 }
 
-func (b *Board) ClearFreeze() {
-	b.freeze = [BoardSide * BoardSide]bool{}
+func (b *Board) clearFreeze() {
+	b.freezeMap = freezeMap{}
 }
 
 // Shift returns true if any movement occured
@@ -49,7 +52,7 @@ func (b *Board) Shift(dir Direction) bool {
 
 	for j := 0; j < BoardSide; j++ {
 		for i := 0; i < (BoardSide * BoardSide); i++ {
-			if b.raw[i] == 0 {
+			if b.tiles[i] == 0 {
 				continue
 			}
 
@@ -57,11 +60,12 @@ func (b *Board) Shift(dir Direction) bool {
 			cur := b.Get(x, y)
 			neighX, neighY := dX+x, dY+y
 
-			if neighX < 0 || neighX > BoardSide ||
-				neighY < 0 || neighY > BoardSide {
+			if neighX < 0 || neighX >= BoardSide ||
+				neighY < 0 || neighY >= BoardSide {
 				continue
 			}
 
+			fmt.Printf("%d, %d\n", neighX, neighY)
 			neigh := b.Get(neighX, neighY)
 
 			if neigh == 0 {
@@ -71,19 +75,15 @@ func (b *Board) Shift(dir Direction) bool {
 			} else if cur == neigh && !b.IsFrozen(x, y) {
 				b.Set(neighX, neighY, 2*cur)
 				b.Set(x, y, 0)
-				b.Freeze(x, y)
+				b.freeze(x, y)
 				somethingHappened = true
 			}
 		}
 	}
 
-	b.ClearFreeze()
+	b.clearFreeze()
 
 	return somethingHappened
-}
-
-func iToPosition(i int) (int, int) {
-	return i % BoardSide, i / BoardSide
 }
 
 func (b *Board) Collate(dir Direction) {
@@ -128,4 +128,12 @@ func getShiftVector(dir Direction) (dX, dY int) {
 	}
 
 	return dX, dY
+}
+
+func iToPosition(i int) (int, int) {
+	return i % BoardSide, i / BoardSide
+}
+
+func positionToI(x int, y int) int {
+	return y*BoardSide + x
 }

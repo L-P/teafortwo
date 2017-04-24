@@ -1,9 +1,13 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"home.leo-peltier.fr/teafortwo/game"
+)
 
 func main() {
-	board := Board{}
+	board := game.Board{}
 	board.Set(0, 0, 512)
 	board.Set(1, 0, 16)
 	board.Set(2, 0, 16)
@@ -13,12 +17,12 @@ func main() {
 
 	fmt.Println(board.String())
 
-	board.Shift(DirLeft)
+	board.Shift(game.DirLeft)
 	fmt.Println(board.String())
 
-	board.Shift(DirUp)
+	board.Shift(game.DirUp)
 	fmt.Println(board.String())
 
-	board.Shift(DirLeft)
+	board.Shift(game.DirLeft)
 	fmt.Println(board.String())
 }
