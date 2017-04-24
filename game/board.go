@@ -65,7 +65,6 @@ func (b *Board) Shift(dir Direction) bool {
 				continue
 			}
 
-			fmt.Printf("%d, %d\n", neighX, neighY)
 			neigh := b.Get(neighX, neighY)
 
 			if neigh == 0 {
@@ -93,6 +92,25 @@ func (b *Board) Collate(dir Direction) {
 	}
 }
 
+/* Output:
+┌──────┬──────┬──────┬──────┐
+│      │      │      │      │
+│ 4096 │ 4096 │ 4096 │ 4096 │
+│      │      │      │      │
+├──────┼──────┼──────┼──────┤
+│      │      │      │      │
+│ 4096 │ 4096 │ 4096 │ 4096 │
+│      │      │      │      │
+├──────┼──────┼──────┼──────┤
+│      │      │      │      │
+│ 4096 │ 4096 │ 4096 │ 4096 │
+│      │      │      │      │
+├──────┼──────┼──────┼──────┤
+│      │      │      │      │
+│ 4096 │ 4096 │ 4096 │ 4096 │
+│      │      │      │      │
+└──────┴──────┴──────┴──────┘
+*/
 func (b Board) String() string {
 	pad := func(v int) string {
 		num := fmt.Sprintf("%d", v)
@@ -104,13 +122,23 @@ func (b Board) String() string {
 		return strings.Repeat(" ", count) + num
 	}
 
-	for y := 0; y < BoardSide; y++ {
-		for x := 0; x < BoardSide; x++ {
-			fmt.Printf(" %s ", pad(b.Get(x, y)))
-		}
+	fmt.Println("┌──────┬──────┬──────┬──────┐")
 
-		fmt.Print("\n")
+	for y := 0; y < BoardSide; y++ {
+		fmt.Println("│      │      │      │      │")
+		for x := 0; x < BoardSide; x++ {
+			fmt.Printf("│ %s ", pad(b.Get(x, y)))
+
+		}
+		fmt.Println("│")
+		fmt.Println("│      │      │      │      │")
+
+		if y < BoardSide-1 {
+			fmt.Println("├──────┼──────┼──────┼──────┤")
+		}
 	}
+
+	fmt.Println("└──────┴──────┴──────┴──────┘")
 
 	return ""
 }
