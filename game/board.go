@@ -122,25 +122,25 @@ func (b Board) String() string {
 		return strings.Repeat(" ", count) + num
 	}
 
-	fmt.Println("┌──────┬──────┬──────┬──────┐")
+	str := fmt.Sprintln("┌──────┬──────┬──────┬──────┐")
 
 	for y := 0; y < BoardSide; y++ {
-		fmt.Println("│      │      │      │      │")
+		str += fmt.Sprintln("│      │      │      │      │")
 		for x := 0; x < BoardSide; x++ {
-			fmt.Printf("│ %s ", pad(b.Get(x, y)))
+			str += fmt.Sprintf("│ %s ", pad(b.Get(x, y)))
 
 		}
-		fmt.Println("│")
-		fmt.Println("│      │      │      │      │")
+		str += fmt.Sprintln("│")
+		str += fmt.Sprintln("│      │      │      │      │")
 
 		if y < BoardSide-1 {
-			fmt.Println("├──────┼──────┼──────┼──────┤")
+			str += fmt.Sprintln("├──────┼──────┼──────┼──────┤")
 		}
 	}
 
-	fmt.Println("└──────┴──────┴──────┴──────┘")
+	str += fmt.Sprintln("└──────┴──────┴──────┴──────┘")
 
-	return ""
+	return str
 }
 
 func getShiftVector(dir Direction) (dX, dY int) {
