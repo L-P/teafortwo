@@ -8,6 +8,7 @@ import (
 
 	"github.com/L-P/teafortwo/game"
 	"github.com/jroimartin/gocui"
+	"github.com/logrusorgru/aurora"
 )
 
 // GameState holds the global state of a game.
@@ -110,8 +111,16 @@ func makeShiftCallback(s *GameState, dir game.Direction) func(*gocui.Gui, *gocui
 			return err
 		}
 
+		if s.board.Won() {
+			s.message = aurora.Green(
+				"You won! You can keep playing\nor reset the game with 'n'.",
+			).String()
+		}
+
 		if !s.board.HasMovesLeft() {
-			s.message = "No moves left.\nPress 'n' to start a new game."
+			s.message = aurora.Red(
+				"No moves left.\nPress 'n' to start a new game.",
+			).String()
 		}
 
 		return redraw(s, g)

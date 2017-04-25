@@ -265,3 +265,15 @@ func (b *Board) Reset() {
 	b.tiles = tileMap{}
 	b.PlaceRandom()
 }
+
+// Won returns true if board holds a winning game, meaning the player
+// reached 2048 (it's the name of the game).
+func (b Board) Won() bool {
+	for i := 0; i < (BoardSide * BoardSide); i++ {
+		if b.tiles[i] >= 2048 {
+			return true
+		}
+	}
+
+	return false
+}
