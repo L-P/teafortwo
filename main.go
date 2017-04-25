@@ -13,7 +13,7 @@ import (
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	board := &game.Board{}
-	board.PlaceRandom()
+	board.Reset()
 
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -27,6 +27,10 @@ func main() {
 		log.Panicln(err)
 	}
 	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
+		log.Panicln(err)
+	}
+
+	if err := g.SetKeybinding("", 'n', gocui.ModNone, makeResetCallback(board)); err != nil {
 		log.Panicln(err)
 	}
 
@@ -48,25 +52,27 @@ func main() {
 	}
 }
 
+const BoardView = "board"
+const ScoreView = "score"
+
 func layout(b *game.Board) func(*gocui.Gui) error {
 	return func(g *gocui.Gui) error {
-		if v, err := g.SetView("board", 0, 0, 30, 18); err != nil {
+		if v, err := g.SetView(BoardView, 0, 0, 30, 18); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
 
-			g.SetCurrentView("board")
+			g.SetCurrentView(BoardView)
 			v.Frame = false
-			fmt.Fprintln(v, b.String())
 		}
 
-		if v, err := g.SetView("score", 32, 1, 46, 3); err != nil {
+		if _, err := g.SetView(ScoreView, 32, 1, 46, 4); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
-
-			fmt.Fprintln(v, "score:      0")
 		}
+
+		redraw(b, g)
 		return nil
 	}
 }
@@ -85,22 +91,37 @@ func makeShiftCallback(b *game.Board, dir game.Direction) func(*gocui.Gui, *gocu
 			return err
 		}
 
-		v.Clear()
-		fmt.Fprintln(v, b.String())
-
 		// TODO: actually handle the endgame, panic'ing is not exactly user-friendly.
 		if !b.HasMovesLeft() {
 			return fmt.Errorf("no moves left, score: %d", b.Score())
 		}
 
-		score, err := g.View("score")
-		if err != nil {
-			return fmt.Errorf("unable to get score view: %s", err)
-		}
-
-		score.Clear()
-		fmt.Fprintf(score, "score: %6d", b.Score())
-
-		return nil
+		return redraw(b, g)
 	}
+}
+
+func makeResetCallback(b *game.Board) func(*gocui.Gui, *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		b.Reset()
+		return redraw(b, g)
+	}
+}
+
+func redraw(b *game.Board, g *gocui.Gui) error {
+	board, err := g.View(BoardView)
+	if err != nil {
+		return fmt.Errorf("unable to get board view: %s", err)
+	}
+	board.Clear()
+	fmt.Fprintln(board, b.String())
+
+	score, err := g.View(ScoreView)
+	if err != nil {
+		return fmt.Errorf("unable to get score view: %s", err)
+	}
+	score.Clear()
+	fmt.Fprintf(score, "score: %6d\n", b.Score())
+	fmt.Fprintf(score, "moves: %6d\n", b.Moves())
+
+	return nil
 }

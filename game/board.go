@@ -26,6 +26,7 @@ type Board struct {
 	tiles     tileMap
 	freezeMap freezeMap
 	score     int
+	moves     int
 }
 
 func (b Board) get(x, y int) int {
@@ -86,6 +87,9 @@ func (b *Board) Shift(dir Direction) bool {
 	}
 
 	b.clearFreeze()
+	if somethingHappened {
+		b.moves += 1
+	}
 
 	return somethingHappened
 }
@@ -249,4 +253,14 @@ func (b *Board) ColorTest() {
 
 func (b Board) Score() int {
 	return b.score
+}
+
+func (b Board) Moves() int {
+	return b.moves
+}
+
+func (b *Board) Reset() {
+	b.score = 0
+	b.tiles = tileMap{}
+	b.PlaceRandom()
 }
