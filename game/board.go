@@ -261,6 +261,7 @@ func (b Board) Moves() int {
 
 func (b *Board) Reset() {
 	b.score = 0
+	b.moves = 0
 	b.tiles = tileMap{}
 	b.PlaceRandom()
 }
