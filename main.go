@@ -82,10 +82,17 @@ func setBinds(s *GameState, g *gocui.Gui) error {
 		{"", gocui.KeyCtrlC, quit},
 		{"", 'q', quit},
 		{"", 'n', makeResetCallback(s)},
+
 		{BoardView, gocui.KeyArrowRight, makeShiftCallback(s, game.DirRight)},
 		{BoardView, gocui.KeyArrowDown, makeShiftCallback(s, game.DirDown)},
 		{BoardView, gocui.KeyArrowLeft, makeShiftCallback(s, game.DirLeft)},
 		{BoardView, gocui.KeyArrowUp, makeShiftCallback(s, game.DirUp)},
+
+		// It would not be a real CLI game otherwise.
+		{BoardView, 'l', makeShiftCallback(s, game.DirRight)},
+		{BoardView, 'j', makeShiftCallback(s, game.DirDown)},
+		{BoardView, 'h', makeShiftCallback(s, game.DirLeft)},
+		{BoardView, 'k', makeShiftCallback(s, game.DirUp)},
 	}
 
 	for _, v := range binds {
