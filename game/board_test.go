@@ -124,5 +124,35 @@ func getCases() []testCase {
 				0, 0, 4, 4,
 			},
 		},
+		testCase{
+			before: TileMap{
+				8, 0, 0, 0,
+				4, 0, 0, 0,
+				4, 0, 0, 0,
+				0, 0, 0, 0,
+			},
+			direction: DirUp,
+			expected: TileMap{
+				8, 0, 0, 0,
+				8, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+			},
+		},
+		testCase{
+			before: TileMap{
+				16, 0, 0, 0,
+				8, 0, 0, 0,
+				4, 0, 0, 0,
+				4, 0, 0, 0,
+			},
+			direction: DirUp,
+			expected: TileMap{
+				16, 0, 0, 0,
+				8, 0, 0, 0,
+				8, 0, 0, 0,
+				0, 0, 0, 0,
+			},
+		},
 	}
 }

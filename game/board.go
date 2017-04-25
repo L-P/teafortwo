@@ -77,6 +77,7 @@ func (b *Board) Shift(dir Direction) bool {
 				b.Set(neighX, neighY, 2*cur)
 				b.Set(x, y, 0)
 				b.freeze(x, y)
+				b.freeze(neighX, neighY)
 				somethingHappened = true
 			}
 		}
