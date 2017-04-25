@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+
+	"github.com/logrusorgru/aurora"
 )
 
 const BoardSide = 4
@@ -130,10 +132,12 @@ func (b Board) String() string {
 	for y := 0; y < BoardSide; y++ {
 		str += fmt.Sprintln("│      │      │      │      │")
 		for x := 0; x < BoardSide; x++ {
-			if b.Get(x, y) == 0 {
+			v := b.Get(x, y)
+
+			if v == 0 {
 				str += fmt.Sprintf("│      ")
 			} else {
-				str += fmt.Sprintf("│ %s ", pad(b.Get(x, y)))
+				str += fmt.Sprintf("│ %s ", aurora.Colorize(pad(v), getColor(v)))
 			}
 		}
 		str += fmt.Sprintln("│")
@@ -219,4 +223,38 @@ func (b Board) HasMovesLeft() bool {
 	}
 
 	return false
+}
+
+func getColor(v int) aurora.Color {
+	colors := map[int]aurora.Color{
+		2:    aurora.GrayFg,
+		4:    aurora.GrayFg,
+		8:    aurora.BrownFg,
+		16:   aurora.RedFg,
+		32:   aurora.MagentaFg,
+		64:   aurora.CyanFg,
+		128:  aurora.GrayBg | aurora.CyanFg,
+		256:  aurora.GrayBg | aurora.BlueFg,
+		512:  aurora.GrayBg | aurora.MagentaFg,
+		1024: aurora.GrayBg | aurora.RedFg,
+		2048: aurora.GrayBg | aurora.BrownFg,
+		4096: aurora.GrayBg | aurora.BlackFg,
+		8192: aurora.GrayBg | aurora.GreenFg,
+	}
+
+	c, ok := colors[v]
+	if !ok {
+		return aurora.GrayFg
+	}
+
+	return c
+}
+
+func (b *Board) ColorTest() {
+	b.tiles = TileMap{
+		8192, 4096, 2048, 1024,
+		512, 256, 128, 64,
+		32, 16, 8, 4,
+		2, 0, 0, 0,
+	}
 }
