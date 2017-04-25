@@ -1,7 +1,9 @@
 package game
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 )
 
@@ -127,8 +129,11 @@ func (b Board) String() string {
 	for y := 0; y < BoardSide; y++ {
 		str += fmt.Sprintln("│      │      │      │      │")
 		for x := 0; x < BoardSide; x++ {
-			str += fmt.Sprintf("│ %s ", pad(b.Get(x, y)))
-
+			if b.Get(x, y) == 0 {
+				str += fmt.Sprintf("│      ")
+			} else {
+				str += fmt.Sprintf("│ %s ", pad(b.Get(x, y)))
+			}
 		}
 		str += fmt.Sprintln("│")
 		str += fmt.Sprintln("│      │      │      │      │")
@@ -164,4 +169,36 @@ func iToPosition(i int) (int, int) {
 
 func positionToI(x int, y int) int {
 	return y*BoardSide + x
+}
+
+func (b *Board) PlaceRandom() error {
+	if b.IsFull() {
+		return errors.New("board is full")
+	}
+
+	available := make([]int, 0, BoardSide*BoardSide)
+	for i := 0; i < (BoardSide * BoardSide); i++ {
+		if b.tiles[i] == 0 {
+			available = append(available, i)
+		}
+	}
+
+	i := available[rand.Int()%len(available)]
+	num := 2
+	if rand.Intn(100) > 75 {
+		num = 4
+	}
+	b.tiles[i] = num
+
+	return nil
+}
+
+func (b Board) IsFull() bool {
+	for i := 0; i < (BoardSide * BoardSide); i++ {
+		if b.tiles[i] == 0 {
+			return false
+		}
+	}
+
+	return true
 }
