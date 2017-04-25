@@ -3,7 +3,7 @@
 
 ## What?
 This is a CLI version of the [2048 game][1].
-[!screenshot](screenshot.png)
+![screenshot](screenshot.png)
 
 
 ## Why?
