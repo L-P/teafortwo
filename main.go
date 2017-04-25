@@ -15,39 +15,18 @@ func main() {
 	board := &game.Board{}
 	board.Reset()
 
-	g, err := gocui.NewGui(gocui.OutputNormal)
+	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Fatalf("unable to init term: %s", err)
 	}
-	defer g.Close()
+	defer gui.Close()
 
-	g.SetManagerFunc(layout(board))
-
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
-		log.Panicln(err)
-	}
-	if err := g.SetKeybinding("", 'q', gocui.ModNone, quit); err != nil {
+	gui.SetManagerFunc(layout(board))
+	if err := setBinds(board, gui); err != nil {
 		log.Panicln(err)
 	}
 
-	if err := g.SetKeybinding("", 'n', gocui.ModNone, makeResetCallback(board)); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.SetKeybinding("board", gocui.KeyArrowRight, gocui.ModNone, makeShiftCallback(board, game.DirRight)); err != nil {
-		log.Panicln(err)
-	}
-	if err := g.SetKeybinding("board", gocui.KeyArrowDown, gocui.ModNone, makeShiftCallback(board, game.DirDown)); err != nil {
-		log.Panicln(err)
-	}
-	if err := g.SetKeybinding("board", gocui.KeyArrowLeft, gocui.ModNone, makeShiftCallback(board, game.DirLeft)); err != nil {
-		log.Panicln(err)
-	}
-	if err := g.SetKeybinding("board", gocui.KeyArrowUp, gocui.ModNone, makeShiftCallback(board, game.DirUp)); err != nil {
-		log.Panicln(err)
-	}
-
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+	if err := gui.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
 }
@@ -75,6 +54,30 @@ func layout(b *game.Board) func(*gocui.Gui) error {
 		redraw(b, g)
 		return nil
 	}
+}
+
+func setBinds(b *game.Board, g *gocui.Gui) error {
+	binds := []struct {
+		view string
+		key  interface{}
+		fn   func(g *gocui.Gui, v *gocui.View) error
+	}{
+		{"", gocui.KeyCtrlC, quit},
+		{"", 'q', quit},
+		{"", 'n', makeResetCallback(b)},
+		{BoardView, gocui.KeyArrowRight, makeShiftCallback(b, game.DirRight)},
+		{BoardView, gocui.KeyArrowDown, makeShiftCallback(b, game.DirDown)},
+		{BoardView, gocui.KeyArrowLeft, makeShiftCallback(b, game.DirLeft)},
+		{BoardView, gocui.KeyArrowUp, makeShiftCallback(b, game.DirUp)},
+	}
+
+	for _, v := range binds {
+		if err := g.SetKeybinding(v.view, v.key, gocui.ModNone, v.fn); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func quit(g *gocui.Gui, v *gocui.View) error {
