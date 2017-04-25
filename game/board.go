@@ -186,7 +186,7 @@ func (b *Board) PlaceRandom() error {
 
 	i := available[rand.Int()%len(available)]
 	num := 2
-	if rand.Intn(100) > 75 {
+	if rand.Intn(100) > 90 {
 		num = 4
 	}
 	b.tiles[i] = num

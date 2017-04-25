@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
+	"time"
 
 	"github.com/jroimartin/gocui"
 
@@ -10,6 +12,7 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
 	board := &game.Board{}
 	board.PlaceRandom()
 
