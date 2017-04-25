@@ -2,7 +2,7 @@
 [… and two for tea…](https://www.youtube.com/watch?v=pVUZl3ePfwg)
 
 ## What?
-This is a CLI version of the [2048 game][1].
+This is a CLI version of the [2048 game][1].  
 ![screenshot](screenshot.png)
 
 
