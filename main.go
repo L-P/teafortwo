@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -84,6 +85,10 @@ func makeShiftCallback(b *game.Board, dir game.Direction) func(*gocui.Gui, *gocu
 
 		v.Clear()
 		fmt.Fprintln(v, b.String())
+
+		if !b.HasMovesLeft() {
+			return errors.New("no moves left")
+		}
 		return nil
 	}
 }

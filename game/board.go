@@ -203,3 +203,20 @@ func (b Board) IsFull() bool {
 
 	return true
 }
+
+func (b Board) HasMovesLeft() bool {
+	if b.Shift(DirRight) {
+		return true
+	}
+	if b.Shift(DirDown) {
+		return true
+	}
+	if b.Shift(DirLeft) {
+		return true
+	}
+	if b.Shift(DirUp) {
+		return true
+	}
+
+	return false
+}
