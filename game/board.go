@@ -1,7 +1,9 @@
 package game
 
 import (
+	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 )
 
@@ -75,6 +77,7 @@ func (b *Board) Shift(dir Direction) bool {
 				b.Set(neighX, neighY, 2*cur)
 				b.Set(x, y, 0)
 				b.freeze(x, y)
+				b.freeze(neighX, neighY)
 				somethingHappened = true
 			}
 		}
@@ -122,25 +125,28 @@ func (b Board) String() string {
 		return strings.Repeat(" ", count) + num
 	}
 
-	fmt.Println("┌──────┬──────┬──────┬──────┐")
+	str := fmt.Sprintln("┌──────┬──────┬──────┬──────┐")
 
 	for y := 0; y < BoardSide; y++ {
-		fmt.Println("│      │      │      │      │")
+		str += fmt.Sprintln("│      │      │      │      │")
 		for x := 0; x < BoardSide; x++ {
-			fmt.Printf("│ %s ", pad(b.Get(x, y)))
-
+			if b.Get(x, y) == 0 {
+				str += fmt.Sprintf("│      ")
+			} else {
+				str += fmt.Sprintf("│ %s ", pad(b.Get(x, y)))
+			}
 		}
-		fmt.Println("│")
-		fmt.Println("│      │      │      │      │")
+		str += fmt.Sprintln("│")
+		str += fmt.Sprintln("│      │      │      │      │")
 
 		if y < BoardSide-1 {
-			fmt.Println("├──────┼──────┼──────┼──────┤")
+			str += fmt.Sprintln("├──────┼──────┼──────┼──────┤")
 		}
 	}
 
-	fmt.Println("└──────┴──────┴──────┴──────┘")
+	str += fmt.Sprintln("└──────┴──────┴──────┴──────┘")
 
-	return ""
+	return str
 }
 
 func getShiftVector(dir Direction) (dX, dY int) {
@@ -164,4 +170,53 @@ func iToPosition(i int) (int, int) {
 
 func positionToI(x int, y int) int {
 	return y*BoardSide + x
+}
+
+func (b *Board) PlaceRandom() error {
+	if b.IsFull() {
+		return errors.New("board is full")
+	}
+
+	available := make([]int, 0, BoardSide*BoardSide)
+	for i := 0; i < (BoardSide * BoardSide); i++ {
+		if b.tiles[i] == 0 {
+			available = append(available, i)
+		}
+	}
+
+	i := available[rand.Int()%len(available)]
+	num := 2
+	if rand.Intn(100) > 90 {
+		num = 4
+	}
+	b.tiles[i] = num
+
+	return nil
+}
+
+func (b Board) IsFull() bool {
+	for i := 0; i < (BoardSide * BoardSide); i++ {
+		if b.tiles[i] == 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
+func (b Board) HasMovesLeft() bool {
+	if b.Shift(DirRight) {
+		return true
+	}
+	if b.Shift(DirDown) {
+		return true
+	}
+	if b.Shift(DirLeft) {
+		return true
+	}
+	if b.Shift(DirUp) {
+		return true
+	}
+
+	return false
 }
