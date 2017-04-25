@@ -6,9 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/L-P/teafortwo/game"
 	"github.com/jroimartin/gocui"
-
-	"home.leo-peltier.fr/teafortwo/game"
 )
 
 func main() {
