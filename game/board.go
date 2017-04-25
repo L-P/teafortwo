@@ -26,6 +26,7 @@ type freezeMap [BoardSide * BoardSide]bool
 type Board struct {
 	tiles     TileMap
 	freezeMap freezeMap
+	score     int
 }
 
 func (b Board) Get(x, y int) int {
@@ -80,6 +81,7 @@ func (b *Board) Shift(dir Direction) bool {
 				b.Set(x, y, 0)
 				b.freeze(x, y)
 				b.freeze(neighX, neighY)
+				b.score += 2 * cur
 				somethingHappened = true
 			}
 		}
@@ -257,4 +259,8 @@ func (b *Board) ColorTest() {
 		32, 16, 8, 4,
 		2, 0, 0, 0,
 	}
+}
+
+func (b Board) Score() int {
+	return b.score
 }

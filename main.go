@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -65,6 +64,14 @@ func layout(b *game.Board) func(*gocui.Gui) error {
 			v.Frame = false
 			fmt.Fprintln(v, b.String())
 		}
+
+		if v, err := g.SetView("score", 32, 1, 62, 3); err != nil {
+			if err != gocui.ErrUnknownView {
+				return err
+			}
+
+			fmt.Fprintln(v, "score: 0")
+		}
 		return nil
 	}
 }
@@ -87,8 +94,17 @@ func makeShiftCallback(b *game.Board, dir game.Direction) func(*gocui.Gui, *gocu
 		fmt.Fprintln(v, b.String())
 
 		if !b.HasMovesLeft() {
-			return errors.New("no moves left")
+			return fmt.Errorf("no moves left, score: %d", b.Score())
 		}
+
+		score, err := g.View("score")
+		if err != nil {
+			return fmt.Errorf("unable to get score view: %s", err)
+		}
+
+		score.Clear()
+		fmt.Fprintf(score, "score: %d", b.Score())
+
 		return nil
 	}
 }
