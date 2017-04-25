@@ -93,6 +93,7 @@ func makeShiftCallback(b *game.Board, dir game.Direction) func(*gocui.Gui, *gocu
 		v.Clear()
 		fmt.Fprintln(v, b.String())
 
+		// TODO: actually handle the endgame, panic'ing is not exactly user-friendly.
 		if !b.HasMovesLeft() {
 			return fmt.Errorf("no moves left, score: %d", b.Score())
 		}
