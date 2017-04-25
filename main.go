@@ -47,10 +47,6 @@ func main() {
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
 		log.Panicln(err)
 	}
-
-	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		panic(err)
-	}
 }
 
 func layout(b *game.Board) func(*gocui.Gui) error {
