@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strings"
 
 	"github.com/logrusorgru/aurora"
 )
@@ -105,16 +104,6 @@ func (b *Board) clearFreeze() {
 
 // String returns a human-readable version of the Board.
 func (b Board) String() string {
-	pad := func(v int) string {
-		num := fmt.Sprintf("%d", v)
-		count := 4 - len(num)
-		if count <= 0 {
-			return num
-		}
-
-		return strings.Repeat(" ", count) + num
-	}
-
 	str := fmt.Sprintln("┌──────┬──────┬──────┬──────┐")
 
 	for y := 0; y < BoardSide; y++ {
@@ -125,7 +114,10 @@ func (b Board) String() string {
 			if v == 0 {
 				str += fmt.Sprintf("│      ")
 			} else {
-				str += fmt.Sprintf("│ %s ", aurora.Colorize(pad(v), getColor(v)))
+				str += fmt.Sprintf(
+					"│ %4d ",
+					aurora.Colorize(v, getColor(v)),
+				)
 			}
 		}
 		str += fmt.Sprintln("│")

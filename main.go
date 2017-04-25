@@ -60,12 +60,12 @@ func layout(b *game.Board) func(*gocui.Gui) error {
 			fmt.Fprintln(v, b.String())
 		}
 
-		if v, err := g.SetView("score", 32, 1, 62, 3); err != nil {
+		if v, err := g.SetView("score", 32, 1, 46, 3); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
 
-			fmt.Fprintln(v, "score: 0")
+			fmt.Fprintln(v, "score:      0")
 		}
 		return nil
 	}
@@ -99,7 +99,7 @@ func makeShiftCallback(b *game.Board, dir game.Direction) func(*gocui.Gui, *gocu
 		}
 
 		score.Clear()
-		fmt.Fprintf(score, "score: %d", b.Score())
+		fmt.Fprintf(score, "score: %6d", b.Score())
 
 		return nil
 	}
