@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"time"
 
+	"github.com/L-P/teafortwo/ai"
 	"github.com/L-P/teafortwo/game"
 	"github.com/jroimartin/gocui"
 	"github.com/logrusorgru/aurora"
@@ -20,6 +22,30 @@ type GameState struct {
 const howtoMessage = "q: quit, n: new game\n→↓←↑: move tiles around"
 
 func main() {
+	runAi := flag.Bool("ai", false, "run AI")
+	flag.Parse()
+
+	if *runAi {
+		runAI()
+	} else {
+		runPlay()
+	}
+}
+
+func runAI() {
+	rand.Seed(time.Now().UnixNano())
+	board := game.Board{}
+	board.Reset()
+
+	ai := ai.NewNaive(&board)
+	if err := ai.Solve(); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(board.String())
+}
+
+func runPlay() {
 	rand.Seed(time.Now().UnixNano())
 	state := &GameState{message: howtoMessage}
 	state.board.Reset()
@@ -110,12 +136,13 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 
 func makeShiftCallback(s *GameState, dir game.Direction) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		if !s.board.Shift(dir) {
-			return nil
+		shifted, err := s.board.Shift(dir)
+		if err != nil {
+			return err
 		}
 
-		if err := s.board.PlaceRandom(); err != nil {
-			return err
+		if !shifted {
+			return nil
 		}
 
 		if s.board.Won() {

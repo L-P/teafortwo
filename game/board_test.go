@@ -11,12 +11,12 @@ func TestSparse(t *testing.T) {
 	b.set(3, 0, 2)
 	b.Shift(DirLeft)
 
-	if b.get(0, 0) != 4 {
+	if b.Get(0, 0) != 4 {
 		t.Error("tiles were not merged")
 	}
 
 	for i := 1; i < BoardSide; i++ {
-		if b.get(i, 0) != 0 {
+		if b.Get(i, 0) != 0 {
 			t.Error("tiles were not reset to 0")
 		}
 	}
@@ -30,18 +30,18 @@ func TestNoRemerge(t *testing.T) {
 	b.set(0, 3, 2)
 	b.Shift(DirUp)
 
-	if b.get(0, 0) != 4 || b.get(0, 1) != 4 {
+	if b.Get(0, 0) != 4 || b.Get(0, 1) != 4 {
 		t.Error("tiles were not merged")
 	}
 
 	for i := 2; i < BoardSide; i++ {
-		if b.get(0, i) != 0 {
+		if b.Get(0, i) != 0 {
 			t.Error("tiles were not reset to 0")
 		}
 	}
 
 	b.Shift(DirUp)
-	if b.get(0, 0) != 8 {
+	if b.Get(0, 0) != 8 {
 		t.Error("tiles were not merged")
 	}
 }
@@ -57,22 +57,22 @@ func TestShift(t *testing.T) {
 }
 
 type testCase struct {
-	before    tileMap
+	before    TileMap
 	direction Direction
-	expected  tileMap
+	expected  TileMap
 }
 
 func getCases() []testCase {
 	return []testCase{
 		testCase{
-			before: tileMap{
+			before: TileMap{
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 			},
 			direction: DirUp,
-			expected: tileMap{
+			expected: TileMap{
 				0, 0, 0, 0,
 				0, 0, 0, 0,
 				0, 0, 0, 0,
@@ -80,14 +80,14 @@ func getCases() []testCase {
 			},
 		},
 		testCase{
-			before: tileMap{
+			before: TileMap{
 				2, 2, 2, 2,
 				4, 0, 4, 0,
 				0, 8, 0, 8,
 				2, 4, 8, 16,
 			},
 			direction: DirLeft,
-			expected: tileMap{
+			expected: TileMap{
 				4, 4, 0, 0,
 				8, 0, 0, 0,
 				16, 0, 0, 0,
@@ -95,14 +95,14 @@ func getCases() []testCase {
 			},
 		},
 		testCase{
-			before: tileMap{
+			before: TileMap{
 				2, 2, 2, 2,
 				4, 0, 4, 0,
 				0, 8, 0, 8,
 				2, 4, 8, 16,
 			},
 			direction: DirDown,
-			expected: tileMap{
+			expected: TileMap{
 				0, 0, 0, 0,
 				2, 2, 2, 2,
 				4, 8, 4, 8,
@@ -110,14 +110,14 @@ func getCases() []testCase {
 			},
 		},
 		testCase{
-			before: tileMap{
+			before: TileMap{
 				2, 2, 2, 2,
 				2, 2, 2, 2,
 				2, 2, 2, 2,
 				2, 2, 2, 2,
 			},
 			direction: DirRight,
-			expected: tileMap{
+			expected: TileMap{
 				0, 0, 4, 4,
 				0, 0, 4, 4,
 				0, 0, 4, 4,
@@ -125,14 +125,14 @@ func getCases() []testCase {
 			},
 		},
 		testCase{
-			before: tileMap{
+			before: TileMap{
 				8, 0, 0, 0,
 				4, 0, 0, 0,
 				4, 0, 0, 0,
 				0, 0, 0, 0,
 			},
 			direction: DirUp,
-			expected: tileMap{
+			expected: TileMap{
 				8, 0, 0, 0,
 				8, 0, 0, 0,
 				0, 0, 0, 0,
@@ -140,14 +140,14 @@ func getCases() []testCase {
 			},
 		},
 		testCase{
-			before: tileMap{
+			before: TileMap{
 				16, 0, 0, 0,
 				8, 0, 0, 0,
 				4, 0, 0, 0,
 				4, 0, 0, 0,
 			},
 			direction: DirUp,
-			expected: tileMap{
+			expected: TileMap{
 				16, 0, 0, 0,
 				8, 0, 0, 0,
 				8, 0, 0, 0,

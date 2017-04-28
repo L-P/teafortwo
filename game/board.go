@@ -19,18 +19,22 @@ const (
 	DirUp    Direction = iota
 )
 
-type tileMap [BoardSide * BoardSide]int
+type TileMap [BoardSide * BoardSide]int
 type freezeMap [BoardSide * BoardSide]bool
 
 type Board struct {
-	tiles     tileMap
+	tiles     TileMap
 	freezeMap freezeMap
 	score     int
 	moves     int
 }
 
-func (b Board) get(x, y int) int {
+func (b Board) Get(x, y int) int {
 	return b.tiles[positionToI(x, y)]
+}
+
+func (b Board) GetTiles() TileMap {
+	return b.tiles
 }
 
 func (b *Board) set(x, y, v int) {
@@ -42,6 +46,8 @@ the border, or reach a tile with a different value.
 
 If no movement occured, Shift returns false.
 
+A random tile is placed after shifting.
+
 The algorithm is quite naive and was taken from C++ code I wrote at a 4 hours
 hackathon years ago, it iterates over all cells to merge/displace them and
 does this BoardSide times to ensure no gap is left between tiles.
@@ -49,7 +55,7 @@ To avoid collapsing a whole row (eg. 2 2 4 8 -> 16 instead of 0 4 4 8) each
 tile that resulted from a merge is marked as "frozen" and will be skipped for
 the next iterations.
 */
-func (b *Board) Shift(dir Direction) bool {
+func (b *Board) Shift(dir Direction) (bool, error) {
 	dX, dY := getShiftVector(dir)
 
 	somethingHappened := false
@@ -61,7 +67,7 @@ func (b *Board) Shift(dir Direction) bool {
 			}
 
 			x, y := iToPosition(i)
-			cur := b.get(x, y)
+			cur := b.Get(x, y)
 			neighX, neighY := dX+x, dY+y
 
 			if neighX < 0 || neighX >= BoardSide ||
@@ -69,7 +75,7 @@ func (b *Board) Shift(dir Direction) bool {
 				continue
 			}
 
-			neigh := b.get(neighX, neighY)
+			neigh := b.Get(neighX, neighY)
 
 			if neigh == 0 {
 				b.set(neighX, neighY, cur)
@@ -88,10 +94,13 @@ func (b *Board) Shift(dir Direction) bool {
 
 	b.clearFreeze()
 	if somethingHappened {
+		if err := b.placeRandom(); err != nil {
+			return true, err
+		}
 		b.moves += 1
 	}
 
-	return somethingHappened
+	return somethingHappened, nil
 }
 
 func (b *Board) freeze(x, y int) {
@@ -113,7 +122,7 @@ func (b Board) String() string {
 	for y := 0; y < BoardSide; y++ {
 		str += fmt.Sprintln("│      │      │      │      │")
 		for x := 0; x < BoardSide; x++ {
-			v := b.get(x, y)
+			v := b.Get(x, y)
 
 			if v == 0 {
 				str += fmt.Sprintf("│      ")
@@ -160,8 +169,8 @@ func positionToI(x int, y int) int {
 	return y*BoardSide + x
 }
 
-// PlaceRandom places a 2 or a 4 (10% chance) in a random empty tile.
-func (b *Board) PlaceRandom() error {
+// placeRandom places a 2 or a 4 (10% chance) in a random empty tile.
+func (b *Board) placeRandom() error {
 	if b.IsFull() {
 		return errors.New("board is full")
 	}
@@ -200,16 +209,16 @@ func (b Board) HasMovesLeft() bool {
 		return true
 	}
 
-	if b.Shift(DirRight) {
+	if shifted, _ := b.Shift(DirRight); shifted {
 		return true
 	}
-	if b.Shift(DirDown) {
+	if shifted, _ := b.Shift(DirDown); shifted {
 		return true
 	}
-	if b.Shift(DirLeft) {
+	if shifted, _ := b.Shift(DirLeft); shifted {
 		return true
 	}
-	if b.Shift(DirUp) {
+	if shifted, _ := b.Shift(DirUp); shifted {
 		return true
 	}
 
@@ -243,7 +252,7 @@ func getColor(v int) aurora.Color {
 
 // ColorTest fills the board with all "legal" values for testing purposes.
 func (b *Board) ColorTest() {
-	b.tiles = tileMap{
+	b.tiles = TileMap{
 		8192, 4096, 2048, 1024,
 		512, 256, 128, 64,
 		32, 16, 8, 4,
@@ -262,8 +271,8 @@ func (b Board) Moves() int {
 func (b *Board) Reset() {
 	b.score = 0
 	b.moves = 0
-	b.tiles = tileMap{}
-	b.PlaceRandom()
+	b.tiles = TileMap{}
+	b.placeRandom()
 }
 
 // Won returns true if board holds a winning game, meaning the player
