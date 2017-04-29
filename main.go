@@ -41,7 +41,7 @@ func runAI() {
 	for i := 0; i < 5000; i++ {
 		board.Reset()
 
-		ai := ai.NewNaive(&board)
+		ai := ai.NewHungry(&board)
 		if err := ai.Solve(); err != nil {
 			panic(err)
 		}
