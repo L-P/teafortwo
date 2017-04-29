@@ -36,8 +36,9 @@ func runAI() {
 	rand.Seed(42)
 
 	var highest = &game.Board{}
+	board := game.Board{}
+
 	for i := 0; i < 5000; i++ {
-		board := game.Board{}
 		board.Reset()
 
 		ai := ai.NewNaive(&board)
@@ -78,28 +79,28 @@ func runPlay() {
 	}
 }
 
-const BoardView = "board"
-const ScoreView = "score"
-const MessageView = "message"
+const boardView = "board"
+const scoreView = "score"
+const messageView = "message"
 
 func layout(s *GameState) func(*gocui.Gui) error {
 	return func(g *gocui.Gui) error {
-		if v, err := g.SetView(BoardView, 0, 0, 30, 18); err != nil {
+		if v, err := g.SetView(boardView, 0, 0, 30, 18); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
 
-			g.SetCurrentView(BoardView)
+			g.SetCurrentView(boardView)
 			v.Frame = false
 		}
 
-		if _, err := g.SetView(ScoreView, 32, 1, 46, 4); err != nil {
+		if _, err := g.SetView(scoreView, 32, 1, 46, 4); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
 		}
 
-		if v, err := g.SetView(MessageView, 0, 18, 30, 21); err != nil {
+		if v, err := g.SetView(messageView, 0, 18, 30, 21); err != nil {
 			if err != gocui.ErrUnknownView {
 				return err
 			}
@@ -121,16 +122,16 @@ func setBinds(s *GameState, g *gocui.Gui) error {
 		{"", 'q', quit},
 		{"", 'n', makeResetCallback(s)},
 
-		{BoardView, gocui.KeyArrowRight, makeShiftCallback(s, game.DirRight)},
-		{BoardView, gocui.KeyArrowDown, makeShiftCallback(s, game.DirDown)},
-		{BoardView, gocui.KeyArrowLeft, makeShiftCallback(s, game.DirLeft)},
-		{BoardView, gocui.KeyArrowUp, makeShiftCallback(s, game.DirUp)},
+		{boardView, gocui.KeyArrowRight, makeShiftCallback(s, game.DirRight)},
+		{boardView, gocui.KeyArrowDown, makeShiftCallback(s, game.DirDown)},
+		{boardView, gocui.KeyArrowLeft, makeShiftCallback(s, game.DirLeft)},
+		{boardView, gocui.KeyArrowUp, makeShiftCallback(s, game.DirUp)},
 
 		// It would not be a real CLI game otherwise.
-		{BoardView, 'l', makeShiftCallback(s, game.DirRight)},
-		{BoardView, 'j', makeShiftCallback(s, game.DirDown)},
-		{BoardView, 'h', makeShiftCallback(s, game.DirLeft)},
-		{BoardView, 'k', makeShiftCallback(s, game.DirUp)},
+		{boardView, 'l', makeShiftCallback(s, game.DirRight)},
+		{boardView, 'j', makeShiftCallback(s, game.DirDown)},
+		{boardView, 'h', makeShiftCallback(s, game.DirLeft)},
+		{boardView, 'k', makeShiftCallback(s, game.DirUp)},
 	}
 
 	for _, v := range binds {
@@ -182,14 +183,14 @@ func makeResetCallback(s *GameState) func(*gocui.Gui, *gocui.View) error {
 }
 
 func redraw(s *GameState, g *gocui.Gui) error {
-	board, err := g.View(BoardView)
+	board, err := g.View(boardView)
 	if err != nil {
 		return fmt.Errorf("unable to get board view: %s", err)
 	}
 	board.Clear()
 	fmt.Fprintln(board, s.board.String())
 
-	score, err := g.View(ScoreView)
+	score, err := g.View(scoreView)
 	if err != nil {
 		return fmt.Errorf("unable to get score view: %s", err)
 	}
@@ -197,7 +198,7 @@ func redraw(s *GameState, g *gocui.Gui) error {
 	fmt.Fprintf(score, "score: %6d\n", s.board.Score())
 	fmt.Fprintf(score, "moves: %6d\n", s.board.Moves())
 
-	message, err := g.View(MessageView)
+	message, err := g.View(messageView)
 	if err != nil {
 		return fmt.Errorf("unable to get message view: %s", err)
 	}

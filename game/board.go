@@ -8,31 +8,46 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
+// BoardSide is the board edge size in tiles.
 const BoardSide = 4
 
+// Direction represents a cardinal direction.
 type Direction int
 
 const (
+	// DirRight goes east.
 	DirRight Direction = iota
-	DirDown  Direction = iota
-	DirLeft  Direction = iota
-	DirUp    Direction = iota
+
+	// DirDown goes south.
+	DirDown Direction = iota
+
+	// DirLeft goes west.
+	DirLeft Direction = iota
+
+	// DirUp goes north.
+	DirUp Direction = iota
 )
 
+// TileMap is an array of tile values.
 type TileMap [BoardSide * BoardSide]int
 type freezeMap [BoardSide * BoardSide]bool
 
+// Board represents the game board, its tiles, and score.
 type Board struct {
 	tiles     TileMap
 	freezeMap freezeMap
 	score     int
 	moves     int
+	highest   int
+	won       bool
 }
 
+// Get returns the value of the tile at the given position.
 func (b Board) Get(x, y int) int {
 	return b.tiles[positionToI(x, y)]
 }
 
+// GetTiles returns a copy of the internal tiles array.
 func (b Board) GetTiles() TileMap {
 	return b.tiles
 }
@@ -41,23 +56,21 @@ func (b *Board) set(x, y, v int) {
 	b.tiles[positionToI(x, y)] = v
 }
 
-/* Shift pushes all tiles in the given direction until they either merge, reach
-the border, or reach a tile with a different value.
-
-If no movement occured, Shift returns false.
-
-A random tile is placed after shifting.
-
-The algorithm is quite naive and was taken from C++ code I wrote at a 4 hours
-hackathon years ago, it iterates over all cells to merge/displace them and
-does this BoardSide times to ensure no gap is left between tiles.
-To avoid collapsing a whole row (eg. 2 2 4 8 -> 16 instead of 0 4 4 8) each
-tile that resulted from a merge is marked as "frozen" and will be skipped for
-the next iterations.
-*/
+// Shift pushes all tiles in the given direction until they either merge, reach
+// the border, or reach a tile with a different value.
+//
+// If no movement occured, Shift returns false.
+//
+// A random tile is placed after shifting.
+//
+// The algorithm is quite naive and was taken from C++ code I wrote at a 4 hours
+// hackathon years ago, it iterates over all cells to merge/displace them and
+// does this BoardSide times to ensure no gap is left between tiles.
+// To avoid collapsing a whole row (eg. 2 2 4 8 -> 16 instead of 0 4 4 8) each
+// tile that resulted from a merge is marked as "frozen" and will be skipped for
+// the next iterations.
 func (b *Board) Shift(dir Direction) (bool, error) {
 	dX, dY := getShiftVector(dir)
-
 	somethingHappened := false
 
 	for j := 0; j < BoardSide; j++ {
@@ -78,29 +91,50 @@ func (b *Board) Shift(dir Direction) (bool, error) {
 			neigh := b.Get(neighX, neighY)
 
 			if neigh == 0 {
+				// No merging, move tiles around
 				b.set(neighX, neighY, cur)
 				b.set(x, y, 0)
 				somethingHappened = true
+
 			} else if cur == neigh && !b.isFrozen(x, y) {
-				b.set(neighX, neighY, 2*cur)
+				// Merge adjacent identical values if they did not result from a merge this Shift call.
+				new := 2 * cur
+
+				// Place values
+				b.set(neighX, neighY, new)
 				b.set(x, y, 0)
+
+				// Disable merging these tiles until next Shift call
 				b.freeze(x, y)
 				b.freeze(neighX, neighY)
-				b.score += 2 * cur
+
+				b.updateScore(new)
 				somethingHappened = true
 			}
 		}
 	}
 
 	b.clearFreeze()
+
+	// If a shift did occur, place a new random value on the board.
 	if somethingHappened {
 		if err := b.placeRandom(); err != nil {
-			return true, err
+			return somethingHappened, err
 		}
-		b.moves += 1
+		b.moves++
 	}
 
 	return somethingHappened, nil
+}
+
+func (b *Board) updateScore(tileValue int) {
+	if tileValue > b.highest {
+		b.highest = tileValue
+	}
+	if tileValue >= 2048 {
+		b.won = true
+	}
+	b.score += tileValue
 }
 
 func (b *Board) freeze(x, y int) {
@@ -260,40 +294,30 @@ func (b *Board) ColorTest() {
 	}
 }
 
+// Score returns the current game score.
+// The score is the sum of all merged values.
 func (b Board) Score() int {
 	return b.score
 }
 
+// Moves returns the number of successful Shift done on the board.
 func (b Board) Moves() int {
 	return b.moves
 }
 
+// Reset resets the board to its initial state (no score, only one random tile).
 func (b *Board) Reset() {
-	b.score = 0
-	b.moves = 0
-	b.tiles = TileMap{}
+	*b = Board{}
 	b.placeRandom()
 }
 
 // Won returns true if board holds a winning game, meaning the player
 // reached 2048 (it's the name of the game).
 func (b Board) Won() bool {
-	for i := 0; i < (BoardSide * BoardSide); i++ {
-		if b.tiles[i] >= 2048 {
-			return true
-		}
-	}
-
-	return false
+	return b.won
 }
 
+// Highest returns the highest value on the board.
 func (b Board) Highest() int {
-	max := 0
-	for i := 0; i < (BoardSide * BoardSide); i++ {
-		if b.tiles[i] > max {
-			max = b.tiles[i]
-		}
-	}
-
-	return max
+	return b.highest
 }

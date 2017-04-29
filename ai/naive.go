@@ -9,10 +9,12 @@ type Naive struct {
 	board *game.Board
 }
 
+// NewNaive creates a new Naive AI
 func NewNaive(board *game.Board) Naive {
 	return Naive{board: board}
 }
 
+// Solve attempts to get the highest score and win the game.
 func (ai *Naive) Solve() error {
 	nextIsUp := true
 
