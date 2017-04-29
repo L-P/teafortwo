@@ -286,3 +286,14 @@ func (b Board) Won() bool {
 
 	return false
 }
+
+func (b Board) Highest() int {
+	max := 0
+	for i := 0; i < (BoardSide * BoardSide); i++ {
+		if b.tiles[i] > max {
+			max = b.tiles[i]
+		}
+	}
+
+	return max
+}
