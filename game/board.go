@@ -202,7 +202,7 @@ func getShiftVector(dir Direction) (dX, dY int) {
 }
 
 func iToPosition(i int) (int, int) {
-	return i % BoardSide, i / BoardSide
+	return i / BoardSide, i % BoardSide
 }
 
 func positionToI(x int, y int) int {
