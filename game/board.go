@@ -15,6 +15,9 @@ const BoardSide = 4
 type Direction int
 
 const (
+	// DirNone is an invalid placeholder
+	DirNone Direction = iota
+
 	// DirRight goes east.
 	DirRight Direction = iota
 
@@ -70,6 +73,9 @@ func (b *Board) set(x, y, v int) {
 // tile that resulted from a merge is marked as "frozen" and will be skipped for
 // the next iterations.
 func (b *Board) Shift(dir Direction) (bool, error) {
+	if dir == DirNone {
+		return false, errors.New("DirNone passed to Shift")
+	}
 	dX, dY := getShiftVector(dir)
 	somethingHappened := false
 
