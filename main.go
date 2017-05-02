@@ -35,7 +35,7 @@ func main() {
 func runAI() {
 	rand.Seed(42)
 
-	var highest = &game.Board{}
+	var highest = game.Board{}
 	board := game.Board{}
 
 	for i := 0; i < 5000; i++ {
@@ -47,7 +47,7 @@ func runAI() {
 		}
 
 		if board.Highest() > highest.Highest() {
-			highest = &board
+			highest = board
 		}
 	}
 
