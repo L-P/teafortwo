@@ -8,8 +8,37 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
+// Board represents the game board, its tiles, and score.
+// A Board should not be copied as its rand will be shared across copies.
+type Board struct {
+	tiles     TileMap
+	freezeMap freezeMap
+	rand      *rand.Rand
+	seed      int64
+
+	score   int
+	moves   int
+	highest int
+	won     bool
+}
+
+// NewBoard returns a new seeded Board
+func NewBoard(seed int64) Board {
+	b := Board{
+		seed: seed,
+		rand: rand.New(rand.NewSource(seed)),
+	}
+	b.placeRandom()
+
+	return b
+}
+
 // BoardSide is the board edge size in tiles.
 const BoardSide = 4
+
+// TileMap is an array of tile values.
+type TileMap [BoardSide * BoardSide]int
+type freezeMap [BoardSide * BoardSide]bool
 
 // Direction represents a cardinal direction.
 type Direction int
@@ -36,20 +65,6 @@ func Directions() []Direction {
 		DirLeft,
 		DirUp,
 	}
-}
-
-// TileMap is an array of tile values.
-type TileMap [BoardSide * BoardSide]int
-type freezeMap [BoardSide * BoardSide]bool
-
-// Board represents the game board, its tiles, and score.
-type Board struct {
-	tiles     TileMap
-	freezeMap freezeMap
-	score     int
-	moves     int
-	highest   int
-	won       bool
 }
 
 // Get returns the value of the tile at the given position.
@@ -255,9 +270,9 @@ func (b *Board) placeRandom() error {
 		}
 	}
 
-	i := available[rand.Int()%len(available)]
+	i := available[b.rand.Int()%len(available)]
 	num := 2
-	if rand.Intn(100) > 90 {
+	if b.rand.Intn(100) > 90 {
 		num = 4
 	}
 	b.tiles[i] = num
@@ -339,8 +354,7 @@ func (b Board) Moves() int {
 
 // Reset resets the board to its initial state (no score, only one random tile).
 func (b *Board) Reset() {
-	*b = Board{}
-	b.placeRandom()
+	*b = NewBoard(b.seed)
 }
 
 // Won returns true if board holds a winning game, meaning the player
@@ -352,4 +366,9 @@ func (b Board) Won() bool {
 // Highest returns the highest value on the board.
 func (b Board) Highest() int {
 	return b.highest
+}
+
+// Seed returns the Board seed.
+func (b Board) Seed() int64 {
+	return b.seed
 }

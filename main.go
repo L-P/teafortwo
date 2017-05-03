@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"time"
 
 	"github.com/L-P/teafortwo/game"
@@ -17,6 +16,14 @@ type GameState struct {
 	message string
 }
 
+// NewGameState returns a new GameState with an initialized board.
+func NewGameState(seed int64) *GameState {
+	return &GameState{
+		message: howtoMessage,
+		board:   game.NewBoard(seed),
+	}
+}
+
 const howtoMessage = "q: quit, n: new game\n→↓←↑: move tiles around"
 
 func main() {
@@ -24,9 +31,7 @@ func main() {
 }
 
 func runPlay() {
-	rand.Seed(time.Now().UnixNano())
-	state := &GameState{message: howtoMessage}
-	state.board.Reset()
+	state := NewGameState(time.Now().UnixNano())
 
 	gui, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
@@ -140,8 +145,7 @@ func makeShiftCallback(s *GameState, dir game.Direction) func(*gocui.Gui, *gocui
 
 func makeResetCallback(s *GameState) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		s.message = howtoMessage
-		s.board.Reset()
+		*s = *NewGameState(time.Now().UnixNano())
 		return redraw(s, g)
 	}
 }

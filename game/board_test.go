@@ -3,6 +3,7 @@ package game
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestSparse(t *testing.T) {
@@ -31,7 +32,7 @@ func TestNoRemerge(t *testing.T) {
 	b.set(0, 1, 2)
 	b.set(0, 2, 2)
 	b.set(0, 3, 2)
-	b.Shift(DirUp)
+	b.doShift(DirUp)
 
 	if b.Get(0, 0) != 4 || b.Get(0, 1) != 4 {
 		t.Error("tiles were not merged")
@@ -157,6 +158,21 @@ func getTestShiftCases() []testShiftCase {
 				0, 0, 0, 0,
 			},
 		},
+		testShiftCase{
+			before: TileMap{
+				16, 0, 0, 0,
+				0, 0, 2, 0,
+				8, 0, 0, 2,
+				8, 0, 2, 0,
+			},
+			direction: DirUp,
+			expected: TileMap{
+				16, 0, 4, 2,
+				16, 0, 0, 0,
+				0, 0, 0, 0,
+				0, 0, 0, 0,
+			},
+		},
 	}
 }
 
@@ -214,6 +230,27 @@ func TestPositionToICases(t *testing.T) {
 				v.x,
 				v.y,
 			)
+		}
+	}
+}
+
+func TestRandIsDeterministic(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		now := time.Now().UnixNano()
+		b1 := NewBoard(now)
+		b2 := NewBoard(now)
+
+		b1.placeRandom()
+		b2.placeRandom()
+		b1.placeRandom()
+		b2.placeRandom()
+		b1.placeRandom()
+		b2.placeRandom()
+
+		for j := 0; j < BoardSide*BoardSide; j++ {
+			if b1.tiles[j] != b2.tiles[j] {
+				t.Fatal("boards did not have the same randomness")
+			}
 		}
 	}
 }
