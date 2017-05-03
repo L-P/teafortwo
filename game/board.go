@@ -15,9 +15,6 @@ const BoardSide = 4
 type Direction int
 
 const (
-	// DirNone is an invalid placeholder
-	DirNone Direction = iota
-
 	// DirRight goes east.
 	DirRight Direction = iota
 
@@ -30,6 +27,16 @@ const (
 	// DirUp goes north.
 	DirUp Direction = iota
 )
+
+// Directions returns all possible shift directions
+func Directions() []Direction {
+	return []Direction{
+		DirRight,
+		DirDown,
+		DirLeft,
+		DirUp,
+	}
+}
 
 // TileMap is an array of tile values.
 type TileMap [BoardSide * BoardSide]int
@@ -62,9 +69,26 @@ func (b *Board) set(x, y, v int) {
 // Shift pushes all tiles in the given direction until they either merge, reach
 // the border, or reach a tile with a different value.
 //
-// If no movement occured, Shift returns false.
+// If no movement occured, Shift returns an ImpossibleShift error.
+// If something else and very wrong happened, a generic error is returned.
 //
 // A random tile is placed after shifting.
+func (b *Board) Shift(dir Direction) error {
+	err := b.doShift(dir)
+	if err != nil {
+		return err
+	}
+
+	b.moves++
+
+	if err := b.placeRandom(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// doShift does the actual shifting so we can test it without the placeRandom part
 //
 // The algorithm is quite naive and was taken from C++ code I wrote at a 4 hours
 // hackathon years ago, it iterates over all cells to merge/displace them and
@@ -72,11 +96,9 @@ func (b *Board) set(x, y, v int) {
 // To avoid collapsing a whole row (eg. 2 2 4 8 -> 16 instead of 0 4 4 8) each
 // tile that resulted from a merge is marked as "frozen" and will be skipped for
 // the next iterations.
-func (b *Board) Shift(dir Direction) (bool, error) {
-	if dir == DirNone {
-		return false, errors.New("DirNone passed to Shift")
-	}
+func (b *Board) doShift(dir Direction) error {
 	dX, dY := getShiftVector(dir)
+	defer b.clearFreeze()
 	somethingHappened := false
 
 	for j := 0; j < BoardSide; j++ {
@@ -86,8 +108,7 @@ func (b *Board) Shift(dir Direction) (bool, error) {
 			}
 
 			x, y := iToPosition(i)
-			cur := b.Get(x, y)
-			neighX, neighY := dX+x, dY+y
+			neighX, neighY := x+dX, y+dY
 
 			if neighX < 0 || neighX >= BoardSide ||
 				neighY < 0 || neighY >= BoardSide {
@@ -98,13 +119,12 @@ func (b *Board) Shift(dir Direction) (bool, error) {
 
 			if neigh == 0 {
 				// No merging, move tiles around
-				b.set(neighX, neighY, cur)
+				b.set(neighX, neighY, b.tiles[i])
 				b.set(x, y, 0)
 				somethingHappened = true
-
-			} else if cur == neigh && !b.isFrozen(x, y) {
+			} else if b.tiles[i] == neigh && !b.isFrozen(x, y) {
 				// Merge adjacent identical values if they did not result from a merge this Shift call.
-				new := 2 * cur
+				new := 2 * b.tiles[i]
 
 				// Place values
 				b.set(neighX, neighY, new)
@@ -120,17 +140,30 @@ func (b *Board) Shift(dir Direction) (bool, error) {
 		}
 	}
 
-	b.clearFreeze()
-
-	// If a shift did occur, place a new random value on the board.
-	if somethingHappened {
-		if err := b.placeRandom(); err != nil {
-			return somethingHappened, err
-		}
-		b.moves++
+	if !somethingHappened {
+		return &ImpossibleShift{dir}
 	}
 
-	return somethingHappened, nil
+	return nil
+}
+
+// ImpossibleShift is returned by Shift() when a shift can't be performed in a given direction
+type ImpossibleShift struct {
+	dir Direction
+}
+
+func (e *ImpossibleShift) Error() string {
+	return fmt.Sprintf("can't shift %s", DirectionToName(e.dir))
+}
+
+// DirectionToName returns the direction name from its value.
+func DirectionToName(dir Direction) string {
+	return map[Direction]string{
+		DirRight: "right",
+		DirDown:  "down",
+		DirLeft:  "left",
+		DirUp:    "up",
+	}[dir]
 }
 
 func (b *Board) updateScore(tileValue int) {
@@ -201,8 +234,8 @@ func getShiftVector(dir Direction) (dX, dY int) {
 	return dX, dY
 }
 
-func iToPosition(i int) (int, int) {
-	return i / BoardSide, i % BoardSide
+func iToPosition(i int) (x int, y int) {
+	return i % BoardSide, i / BoardSide
 }
 
 func positionToI(x int, y int) int {
@@ -249,17 +282,10 @@ func (b Board) HasMovesLeft() bool {
 		return true
 	}
 
-	if shifted, _ := b.Shift(DirRight); shifted {
-		return true
-	}
-	if shifted, _ := b.Shift(DirDown); shifted {
-		return true
-	}
-	if shifted, _ := b.Shift(DirLeft); shifted {
-		return true
-	}
-	if shifted, _ := b.Shift(DirUp); shifted {
-		return true
+	for _, v := range Directions() {
+		if err := b.doShift(v); err == nil {
+			return true
+		}
 	}
 
 	return false

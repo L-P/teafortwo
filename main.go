@@ -114,13 +114,12 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 
 func makeShiftCallback(s *GameState, dir game.Direction) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
-		shifted, err := s.board.Shift(dir)
-		if err != nil {
-			return err
-		}
+		if err := s.board.Shift(dir); err != nil {
+			if _, ok := err.(*game.ImpossibleShift); ok {
+				return nil
+			}
 
-		if !shifted {
-			return nil
+			return fmt.Errorf("Unable to shift: %s", err.Error())
 		}
 
 		if s.board.Won() {

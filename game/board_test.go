@@ -9,7 +9,10 @@ func TestSparse(t *testing.T) {
 	b := Board{}
 	b.set(1, 0, 2)
 	b.set(3, 0, 2)
-	b.Shift(DirLeft)
+	err := b.doShift(DirLeft)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if b.Get(0, 0) != 4 {
 		t.Error("tiles were not merged")
@@ -40,31 +43,31 @@ func TestNoRemerge(t *testing.T) {
 		}
 	}
 
-	b.Shift(DirUp)
+	b.doShift(DirUp)
 	if b.Get(0, 0) != 8 {
 		t.Error("tiles were not merged")
 	}
 }
 
 func TestShift(t *testing.T) {
-	for i, v := range getCases() {
+	for i, v := range getTestShiftCases() {
 		b := Board{tiles: v.before}
-		b.Shift(v.direction)
+		b.doShift(v.direction)
 		if !reflect.DeepEqual(b.tiles, v.expected) {
 			t.Errorf("test case #%d failed", i)
 		}
 	}
 }
 
-type testCase struct {
+type testShiftCase struct {
 	before    TileMap
 	direction Direction
 	expected  TileMap
 }
 
-func getCases() []testCase {
-	return []testCase{
-		testCase{
+func getTestShiftCases() []testShiftCase {
+	return []testShiftCase{
+		testShiftCase{
 			before: TileMap{
 				0, 0, 0, 0,
 				0, 0, 0, 0,
@@ -79,7 +82,7 @@ func getCases() []testCase {
 				0, 0, 0, 0,
 			},
 		},
-		testCase{
+		testShiftCase{
 			before: TileMap{
 				2, 2, 2, 2,
 				4, 0, 4, 0,
@@ -94,7 +97,7 @@ func getCases() []testCase {
 				2, 4, 8, 16,
 			},
 		},
-		testCase{
+		testShiftCase{
 			before: TileMap{
 				2, 2, 2, 2,
 				4, 0, 4, 0,
@@ -109,7 +112,7 @@ func getCases() []testCase {
 				2, 4, 8, 16,
 			},
 		},
-		testCase{
+		testShiftCase{
 			before: TileMap{
 				2, 2, 2, 2,
 				2, 2, 2, 2,
@@ -124,7 +127,7 @@ func getCases() []testCase {
 				0, 0, 4, 4,
 			},
 		},
-		testCase{
+		testShiftCase{
 			before: TileMap{
 				8, 0, 0, 0,
 				4, 0, 0, 0,
@@ -139,7 +142,7 @@ func getCases() []testCase {
 				0, 0, 0, 0,
 			},
 		},
-		testCase{
+		testShiftCase{
 			before: TileMap{
 				16, 0, 0, 0,
 				8, 0, 0, 0,
@@ -154,5 +157,63 @@ func getCases() []testCase {
 				0, 0, 0, 0,
 			},
 		},
+	}
+}
+
+type testPositionToICase struct {
+	x        int
+	y        int
+	expected int
+}
+
+func getTestPositionToICases() []testPositionToICase {
+	return []testPositionToICase{
+		testPositionToICase{
+			x:        0,
+			y:        0,
+			expected: 0,
+		},
+		testPositionToICase{
+			x:        1,
+			y:        0,
+			expected: 1,
+		},
+		testPositionToICase{
+			x:        0,
+			y:        1,
+			expected: 4,
+		},
+		testPositionToICase{
+			x:        3,
+			y:        3,
+			expected: 15,
+		},
+	}
+}
+
+func TestPositionToICases(t *testing.T) {
+	for _, v := range getTestPositionToICases() {
+		actual := positionToI(v.x, v.y)
+		if actual != v.expected {
+			t.Errorf(
+				"positionToI(%d, %d) = %d; expected %d",
+				v.x,
+				v.y,
+				actual,
+				v.expected,
+			)
+		}
+
+		x, y := iToPosition(actual)
+		if x != v.x || y != v.y {
+			t.Errorf(
+				"iToPosition(%d) = %d, %d; expected %d, %d",
+				actual,
+				x,
+				y,
+				v.x,
+				v.y,
+			)
+		}
 	}
 }
