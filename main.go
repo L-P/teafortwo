@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/L-P/teafortwo/ai"
 	"github.com/L-P/teafortwo/game"
 	"github.com/jroimartin/gocui"
 	"github.com/logrusorgru/aurora"
@@ -27,7 +29,40 @@ func NewGameState(seed int64) *GameState {
 const howtoMessage = "q: quit, n: new game\n→↓←↑: move tiles around"
 
 func main() {
-	runPlay()
+	runAi := flag.Bool("ai", false, "run AI")
+	flag.Parse()
+
+	if *runAi {
+		runAI()
+	} else {
+		runPlay()
+	}
+}
+
+func runAI() {
+	rand.Seed(42)
+
+	var highest = game.Board{}
+	board := game.Board{}
+
+	for i := 0; i < 5000; i++ {
+		board.Reset()
+
+		ai := ai.NewHungry(&board)
+		if err := ai.Solve(); err != nil {
+			panic(err)
+		}
+
+		if board.Highest() > highest.Highest() {
+			highest = board
+		}
+	}
+
+	fmt.Println(highest.String())
+	fmt.Printf("score: %d\n", highest.Score())
+	fmt.Printf("moves: %d\n", highest.Moves())
+	fmt.Printf("largest tile: %d\n", highest.Highest())
+
 }
 
 func runPlay() {
