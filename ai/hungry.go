@@ -15,12 +15,12 @@ func NewHungry(board *game.Board) Hungry {
 // Solve attempts to get the highest score and win the game.
 func (ai *Hungry) Solve() error {
 	for ai.board.HasMovesLeft() {
-		best, err := findBest(*ai.board)
+		best, err := ai.FindBest(*ai.board)
 		if err != nil {
 			return err
 		}
 
-		if _, err := ai.board.Shift(best); err != nil {
+		if err := ai.board.Shift(best); err != nil {
 			return err
 		}
 	}
@@ -28,22 +28,17 @@ func (ai *Hungry) Solve() error {
 	return nil
 }
 
-func findBest(board game.Board) (game.Direction, error) {
+// FindBest TODO
+func (ai Hungry) FindBest(board game.Board) (game.Direction, error) {
 	var bestDirection game.Direction
 	var available game.Direction
 	bestScore := 0
 	hasBest := false
 
-	for _, dir := range []game.Direction{game.DirRight, game.DirDown, game.DirLeft, game.DirUp} {
-		board := board
-		ok, err := board.Shift(dir)
-		if err != nil {
-			return game.DirNone, err
-		}
-
-		if ok {
+	for _, dir := range game.Directions() {
+		if ok, score := board.CanShift(dir); ok {
 			available = dir
-			if board.Score() > bestScore {
+			if score > bestScore {
 				bestDirection = dir
 				hasBest = false
 			}

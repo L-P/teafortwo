@@ -40,13 +40,9 @@ func main() {
 }
 
 func runAI() {
-	rand.Seed(42)
-
-	var highest = game.Board{}
-	board := game.Board{}
-
+	var highest game.Board
 	for i := 0; i < 5000; i++ {
-		board.Reset()
+		board := game.NewBoard(time.Now().UnixNano())
 
 		ai := ai.NewHungry(&board)
 		if err := ai.Solve(); err != nil {
@@ -62,6 +58,7 @@ func runAI() {
 	fmt.Printf("score: %d\n", highest.Score())
 	fmt.Printf("moves: %d\n", highest.Moves())
 	fmt.Printf("largest tile: %d\n", highest.Highest())
+	fmt.Printf("seed: %d\n", highest.Seed())
 
 }
 

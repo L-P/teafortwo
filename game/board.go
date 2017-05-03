@@ -44,6 +44,9 @@ type freezeMap [BoardSide * BoardSide]bool
 type Direction int
 
 const (
+	// DirNone is an invalid placeholder.
+	DirNone Direction = iota
+
 	// DirRight goes east.
 	DirRight Direction = iota
 
@@ -112,7 +115,11 @@ func (b *Board) Shift(dir Direction) error {
 // tile that resulted from a merge is marked as "frozen" and will be skipped for
 // the next iterations.
 func (b *Board) doShift(dir Direction) error {
-	dX, dY := getShiftVector(dir)
+	dX, dY, err := getShiftVector(dir)
+	if err != nil {
+		return err
+	}
+
 	defer b.clearFreeze()
 	somethingHappened := false
 
@@ -234,7 +241,7 @@ func (b Board) String() string {
 	return str
 }
 
-func getShiftVector(dir Direction) (dX, dY int) {
+func getShiftVector(dir Direction) (dX, dY int, err error) {
 	switch dir {
 	case DirRight:
 		dX = 1
@@ -244,9 +251,11 @@ func getShiftVector(dir Direction) (dX, dY int) {
 		dX = -1
 	case DirUp:
 		dY = -1
+	default:
+		return 0, 0, fmt.Errorf("invalid shift direction: %v", dir)
 	}
 
-	return dX, dY
+	return dX, dY, nil
 }
 
 func iToPosition(i int) (x int, y int) {
@@ -298,12 +307,22 @@ func (b Board) HasMovesLeft() bool {
 	}
 
 	for _, v := range Directions() {
-		if err := b.doShift(v); err == nil {
+		if ok, _ := b.CanShift(v); ok {
 			return true
 		}
 	}
 
 	return false
+}
+
+// CanShift returns true if the board can be shifted in the given direction.
+// It also returns the score of the board would have after the shift.
+func (b Board) CanShift(dir Direction) (bool, int) {
+	if err := b.doShift(dir); err == nil {
+		return true, b.Score()
+	}
+
+	return false, b.Score()
 }
 
 func getColor(v int) aurora.Color {
